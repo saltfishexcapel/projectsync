@@ -21,7 +21,7 @@ struct _QueueObject
         ObjectNode parent_instance;
         FileObject*
                 operate_object; /*将要操作的文件，包含文件相对于操作目录的路径*/
-        ObjectString* target_path; /*操作的目标目录*/
+        ObjectString* target_original_path; /*操作的目标目录*/
         QueueAction   action;
 };
 

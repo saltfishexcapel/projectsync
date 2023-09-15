@@ -54,7 +54,7 @@ config_object_set_path (ConfigObject* obj, const char* path)
         return true;
 }
 
-static const char* original_path = NULL;
+static const char* global_original_path = NULL;
 
 static void
 config_object_pull_dirents (ObjectHash* hash, const char* path_name)
@@ -63,10 +63,10 @@ config_object_pull_dirents (ObjectHash* hash, const char* path_name)
         ObjectString *     full_path, *relative_path;
         FileObject*        fobj;
 
-        if (!original_path)
-                original_path = path_name;
+        if (!global_original_path)
+                global_original_path = path_name;
 
-        dir = io_stream_directory_open (path_name, original_path);
+        dir = io_stream_directory_open (path_name, global_original_path);
         if (!dir)
                 return;
         full_path     = object_string_new ();
@@ -90,10 +90,12 @@ retry:
                 if (!file_object_set_path (fobj,
                                            full_path->charset,
                                            relative_path->charset)) {
-                        fprintf (stderr,
-                                 "ObjectError:\n\t设置路径错误：FileObject::"
-                                 "set_path (%s)\n",
-                                 full_path->charset);
+                        fprintf (
+                                stderr,
+                                "config_object_pull_dirents(): "
+                                "file_object_set_path():"
+                                "\n\t设置路径错误：FileObject::set_path (%s)\n",
+                                full_path->charset);
                         goto retry;
                 }
                 file_object_pull (fobj);
@@ -122,7 +124,7 @@ config_object_pull (ConfigObject* obj)
 {
         if (!obj || !obj->path)
                 return;
-        original_path = object_string_get_string (obj->path);
+        global_original_path = object_string_get_string (obj->path);
         config_object_pull_dirents (OBJECT_HASH (obj), obj->path->charset);
 }
 
@@ -175,7 +177,7 @@ reiter:
                 queue_object_set_action (queue, QUEUE_ACTION_CHECK);
                 queue_object_set_target_path (
                         queue,
-                        object_string_get_string (obj->path));
+                        object_string_get_string (cmp_obj->path));
                 queue_object_set_object (queue, fobj);
                 queue_add_flag = true;
                 goto reiter;
@@ -225,6 +227,6 @@ reiter_target:
                         queue,
                         object_string_get_string (cmp_obj->path));
                 queue_object_set_object (queue, fobj);
-                goto reiter_target;
         }
+        goto reiter_target;
 }

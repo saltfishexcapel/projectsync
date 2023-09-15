@@ -2,6 +2,19 @@
 #define IO_STREAM_H
 
 #include "../libs/object_v2/object_v2.h"
+#include "config.h"
+
+/**
+ * 目录分隔符
+ * 需要做兼容性处理！
+ * Windows
+ * GNU/Linux
+ */
+#ifdef PROJECTSYNC_SYSTEM_WIN
+        #define DCL "\\"
+#else
+        #define DCL "/"
+#endif
 
 /*判断是否为文件夹，空文件或文件夹都返回 true*/
 bool io_stream_is_directory (const char* name);
@@ -50,6 +63,29 @@ IOStreamDirectory* io_stream_directory_open (const char* name,
  * 编写时请注意：需要跳过 "." ".." 目录！！！
  */
 void io_stream_directory_iter (IOStreamDirectory* dir);
+/**
+ * 退出的时候要解引用对象
+ */
 void io_stream_directory_close (IOStreamDirectory* dir);
+
+/**
+ * 文件拷贝，需要完成的操作有：
+ * 一、检查目标文件所处的目录是否被创建
+ * 二、文件的完整拷贝
+ *
+ * 谨慎编写，需要兼容的平台有：
+ * GNU/Linux
+ * Windows
+ */
+void io_stream_file_copy (const char* src_full_path,
+                          const char* target_full_path);
+/**
+ * 文件删除
+ *
+ * 谨慎编写，需要兼容的平台有：
+ * GNU/Linux
+ * Windows
+ */
+void io_stream_file_delete (const char* target_full_path);
 
 #endif

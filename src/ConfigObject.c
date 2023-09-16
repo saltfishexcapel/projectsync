@@ -11,7 +11,8 @@ config_object_init (ConfigObject* obj)
                 return;
         object_hash_init (OBJECT_HASH (obj));
         object_set_destory_func (obj, config_object_destory);
-        obj->path = NULL;
+        obj->path      = NULL;
+        obj->is_target = false;
 }
 
 ConfigObject*
@@ -42,12 +43,30 @@ config_object_destory (ConfigObject* obj)
 }
 
 bool
-config_object_set_path (ConfigObject* obj, const char* path)
+config_object_set_path (ConfigObject* obj, const char* path, bool is_target)
 {
+        bool have_path;
         if (!obj || !path)
-                return;
-        if (!io_stream_is_directory (path))
                 return false;
+
+        have_path = io_stream_directory_is_exist (path);
+        if (!have_path && !is_target) {
+                fprintf (stderr,
+                         "config_object_set_path (): "
+                         "源路径必须存在！\n");
+                return false;
+        }
+        if (is_target && !have_path && io_stream_directory_create (path)) {
+                fprintf (stderr,
+                         "config_object_set_path (): 目标路径创建失败。\n");
+                return false;
+        }
+        if (!io_stream_is_directory (path)) {
+                fprintf (stderr,
+                         "config_object_set_path (): '%s' 必须是目录。\n",
+                         path);
+                return false;
+        }
         if (!obj->path)
                 obj->path = object_string_new ();
         object_string_set_string (obj->path, path);
@@ -55,6 +74,7 @@ config_object_set_path (ConfigObject* obj, const char* path)
 }
 
 static const char* global_original_path = NULL;
+static o_uint      global_load_nums     = 0;
 
 static void
 config_object_pull_dirents (ObjectHash* hash, const char* path_name)
@@ -86,6 +106,8 @@ retry:
                 config_object_pull_dirents (hash, full_path->charset);
                 break;
         case IO_STREAM_DIRECTORY_TYPE_FILE: {
+                printf ("\r载入文件数: %d", (++global_load_nums));
+                fflush (stdout);
                 fobj = file_object_new ();
                 if (!file_object_set_path (fobj,
                                            full_path->charset,
@@ -124,6 +146,9 @@ config_object_pull (ConfigObject* obj)
 {
         if (!obj || !obj->path)
                 return;
+        printf ("\n正在载入文件信息 %s ...\n",
+                obj->path->charset);
+        global_load_nums     = 0;
         global_original_path = object_string_get_string (obj->path);
         config_object_pull_dirents (OBJECT_HASH (obj), obj->path->charset);
 }
@@ -134,9 +159,9 @@ config_object_compare_with (ConfigObject* obj, ConfigObject* cmp_obj)
         QueueObject * queue = NULL, *queue_head = NULL;
         ObjectHashKV* kv;
         FileObject *  fobj, *dist_obj;
-        size_t        src_tm, dist_tm;
         bool          queue_add_flag = true;
 
+        printf ("\n正在比较文件 ...\n");
         /*初始设置哈希表迭代器*/
         object_hash_iter_reset (OBJECT_HASH (obj));
 reiter:

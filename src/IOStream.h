@@ -10,10 +10,23 @@
  * Windows
  * GNU/Linux
  */
-#ifdef PROJECTSYNC_SYSTEM_WIN
-        #define DCL "\\"
-#else
-        #define DCL "/"
+#if defined(PROJECTSYNC_SYSTEM_WIN)
+        #define DCL   "\\"
+        #define _DCL_ '\\'
+        #include <fileapi.h>
+        #include <io.h>
+        #include <stdlib.h>
+        #include <windows.h>
+        #define io_stream_directory_is_exist(path) \
+                (_access (path, 00) == 0 ? true : false)
+#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+        #define DCL   "/"
+        #define _DCL_ '/'
+        #include <dirent.h>
+        #include <sys/stat.h>
+        #include <unistd.h>
+        #define io_stream_directory_is_exist(path) \
+                (access (path, F_OK) == 0 ? true : false)
 #endif
 
 /*判断是否为文件夹，空文件或文件夹都返回 true*/
@@ -47,17 +60,24 @@ struct _IOStreamDirectory
         ObjectString* relative_path; /*相对操作目录的路径名*/
         char*         iter_name;     /*代表相对于当前目录的文件名*/
         IOStreamDirectoryType type;
-        /**
-         * 请注意谨慎编写，此处需要兼容不同平台：
-         * GNU/Linux
-         * Windows
-         */
+/**
+ * 请注意谨慎编写，此处需要兼容不同平台：
+ * GNU/Linux
+ * Windows
+ */
+#if defined(PROJECTSYNC_SYSTEM_WIN)
+        windows_code;
+#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+        DIR* dir;
+#endif
 };
 
+/*void io_stream_file_catch_dirent_path (ObjectString* obj,
+                                       const char*   target_full_path);*/
 /**
  * 打开目录时同时生成 relative_path
  */
-IOStreamDirectory* io_stream_directory_open (const char* name,
+IOStreamDirectory* io_stream_directory_open (const char* full_path,
                                              const char* original_path);
 /**
  * 编写时请注意：需要跳过 "." ".." 目录！！！
@@ -67,6 +87,15 @@ void io_stream_directory_iter (IOStreamDirectory* dir);
  * 退出的时候要解引用对象
  */
 void io_stream_directory_close (IOStreamDirectory* dir);
+
+/**
+ * 创建目录，可能需要连续创建若干目录，创建成功返回 0
+ *
+ * 谨慎编写，需要兼容：
+ * GNU/Linux
+ * Windows
+ */
+int io_stream_directory_create (const char* path);
 
 /**
  * 文件拷贝，需要完成的操作有：

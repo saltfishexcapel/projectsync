@@ -11,10 +11,12 @@ struct _ConfigObject
 {
         ObjectHash    parent_instance;
         ObjectString* path;
+        bool          is_target;
 };
 
 /*设置工作目录，如果目录不存在或不是目录则返回 false*/
-bool config_object_set_path (ConfigObject* obj, const char* path);
+bool
+config_object_set_path (ConfigObject* obj, const char* path, bool is_target);
 void config_object_pull (ConfigObject* obj);
 /*返回一个队列对象，在最后需要解引用这个对象*/
 QueueObject* config_object_compare_with (ConfigObject* obj,

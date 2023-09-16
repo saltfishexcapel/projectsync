@@ -98,7 +98,7 @@ object_hash_iter_reset (ObjectHash* obj)
         if (!obj || !obj->main_table)
                 return;
         obj->current_iter = NULL;
-        obj->iter_num      = 0;
+        obj->iter_num     = 0;
         obj->state        = OBJECT_HASH_ITER_STATE_START;
 }
 
@@ -128,13 +128,13 @@ retry:
                 obj->current_iter = NULL;
                 break;
         }
-
-        if (obj->current_iter) {
-                obj->state = OBJECT_HASH_ITER_STATE_DEFAULT;
-                return obj->current_iter;
-        } else if (obj->iter_num == obj->table_size) {
+        
+        if (obj->iter_num == obj->table_size) {
                 obj->state = OBJECT_HASH_ITER_STATE_END;
                 return NULL;
+        } else if (obj->current_iter) {
+                obj->state = OBJECT_HASH_ITER_STATE_DEFAULT;
+                return obj->current_iter;
         } else {
                 obj->state = OBJECT_HASH_ITER_STATE_NULL;
                 goto retry;

@@ -49,7 +49,6 @@ file_object_set_path (FileObject* obj,
                       const char* full_path,
                       const char* relative_path)
 {
-        FILE* fp;
         if (!obj || !full_path)
                 return false;
         /*检测是否为文件夹或空文件*/
@@ -74,9 +73,9 @@ file_object_time_compare_with (const FileObject* obj, const FileObject* cmp_obj)
                 return 0;
         if (obj->revise_time > cmp_obj->revise_time)
                 return 1;
-        if (obj->revise_time == cmp_obj->revise_time)
+        else if (obj->revise_time == cmp_obj->revise_time)
                 return 0;
-        if (obj->revise_time < cmp_obj->revise_time)
+        else
                 return -1;
 }
 

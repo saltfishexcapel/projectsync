@@ -10,6 +10,7 @@
 typedef enum _ArgsType ArgsType;
 enum _ArgsType
 {
+        ARGS_TYPE_DEFAULT,  // 默认参数
         ARGS_TYPE_ALONG,    // 单参数
         ARGS_TYPE_ONE,      // 一对一参数
         ARGS_TYPE_MORE,     // 一对多参数

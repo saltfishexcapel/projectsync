@@ -187,7 +187,7 @@ args_object_catch_event (const char* arg_name, ArgTypeRegister* reg)
                 return ARGS_EVENT_GROUP;
 
         default:
-                return ARGS_TYPE_ALONG;
+                return ARGS_EVENT_ALONG;
         }
 }
 
@@ -287,6 +287,13 @@ args_object_action_for_event_along (ArgsObject* obj, const char* arg_name)
 }
 
 static void
+args_object_action_for_event_default (ArgsObject* obj, const char* arg_name)
+{
+        args_object_change_state (obj, ARGS_STATE_DEFAULT);
+        args_object_add_node (obj, arg_name, ARGS_TYPE_DEFAULT);
+}
+
+static void
 args_object_action_for_event_one (ArgsObject* obj, const char* arg_name)
 {
         args_object_change_state (obj, ARGS_STATE_ONE);
@@ -349,6 +356,8 @@ args_object_action_for_state_default (ArgsObject*     obj,
         bool is_success;
         switch (event) {
         case ARGS_EVENT_DEFAULT:
+                args_object_action_for_event_default (obj, arg_name);
+                return NULL;
         case ARGS_EVENT_ALONG:
                 args_object_action_for_event_along (obj, arg_name);
                 return NULL;
@@ -393,6 +402,9 @@ args_object_action_for_state_more_wait (ArgsObject*     obj,
                 return NULL;
         }
         switch (event) {
+        case ARGS_EVENT_DEFAULT:
+                args_object_action_for_event_default (obj, arg_name);
+                return NULL;
         case ARGS_EVENT_ALONG:
                 args_object_action_for_event_along (obj, arg_name);
                 return NULL;

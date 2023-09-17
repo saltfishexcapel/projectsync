@@ -28,6 +28,10 @@ struct _QueueObject
 void queue_object_set_object (QueueObject* obj, FileObject* file_obj);
 void queue_object_set_target_path (QueueObject* obj, const char* target_path);
 void queue_object_set_action (QueueObject* obj, QueueAction action);
-void queue_object_run_action (QueueObject* obj_head);
+
+/**
+ * 操作队列会自动解引用。
+ */
+void queue_object_run_action (QueueObject* obj_head, bool enable_verbose);
 
 #endif

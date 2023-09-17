@@ -6,7 +6,7 @@
 bool
 io_stream_is_directory (const char* name)
 {
-#if defined(PROJECTSYNC_SYSTEM_WIN)
+#if defined PROJECTSYNC_SYSTEM_WIN
         DWORD status;
         status = GetFileAttributes (name);
         if (status == INVALID_FILE_ATTRIBUTES)
@@ -14,7 +14,7 @@ io_stream_is_directory (const char* name)
         if (status | FILE_ATTRIBUTE_DIRECTORY)
                 return true;
         return false;
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         struct stat st;
         if (stat (name, &st))
                 return false;
@@ -27,7 +27,7 @@ io_stream_is_directory (const char* name)
 size_t
 io_stream_get_revise_time (const char* name)
 {
-#if defined(PROJECTSYNC_SYSTEM_WIN)
+#if defined PROJECTSYNC_SYSTEM_WIN
         size_t   filetm = 0;
         FILETIME fTime;
         HANDLE   hFile = CreateFile (_T (name),
@@ -44,7 +44,7 @@ io_stream_get_revise_time (const char* name)
         filetm <<= sizeof (DWORD);
         filetm |= fTime.dwLowDateTime;
         return filetm;
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         struct stat st;
         if (stat (name, &st))
                 return 0L;
@@ -89,9 +89,9 @@ io_stream_directory_open (const char* full_path, const char* original_path)
         dobj->iter_name     = NULL;
         dobj->type          = IO_STREAM_DIRECTORY_TYPE_NONE;
 
-#if defined(PROJECTSYNC_SYSTEM_WIN)
+#if defined PROJECTSYNC_SYSTEM_WIN
         windows_code;
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         dobj->dir = opendir (full_path);
         if (!dobj->dir) {
                 perror ("opendir:");
@@ -120,7 +120,7 @@ io_stream_directory_iter (IOStreamDirectory* dir)
 
 #if defined(PROJECTSYNC_SYSTEM_WIN)
         windows_code;
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         struct dirent* dinfo;
 retry:
         dinfo = readdir (dir->dir);
@@ -150,9 +150,9 @@ io_stream_directory_close (IOStreamDirectory* dir)
         if (!dir)
                 return;
 
-#if defined(PROJECTSYNC_SYSTEM_WIN)
+#if defined PROJECTSYNC_SYSTEM_WIN
         windows_code;
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         if (dir->dir)
                 closedir (dir->dir);
 #endif
@@ -212,15 +212,15 @@ io_stream_directory_create (const char* path)
 {
         int status = 1;
 
-#if defined(PROJECTSYNC_SYSTEM_WIN)
+#if defined PROJECTSYNC_SYSTEM_WIN
         ObjectString* command;
         command = object_string_new ();
         object_string_set_string (command, "md ");
         object_string_append_string (command, path);
         /*系统执行 CMD 指令创建文件夹*/
         status = system (command->charset);
-        object_unref (up_path);
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+        object_unref (command);
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         ObjectString* up_path;
         /*检测当前目录是否存在*/
         if (io_stream_directory_is_exist (path))
@@ -238,7 +238,11 @@ io_stream_directory_create (const char* path)
                 object_unref (up_path);
                 return status;
         }
+#if defined PROJECTSYNC_SYSTEM_LINUX
         status = mkdir (path, 0755);
+#elif defined PROJECTSYNC_SYSTEM_MINGW
+        status = mkdir (path);
+#endif
         if (status)
                 perror ("mkdir ():");
         object_unref (up_path);

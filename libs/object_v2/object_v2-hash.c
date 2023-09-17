@@ -121,14 +121,15 @@ retry:
         }
         case OBJECT_HASH_ITER_STATE_NULL: {
                 obj->iter_num += 1;
-                obj->current_iter = obj->main_table[obj->iter_num];
+                if (obj->iter_num < obj->table_size)
+                        obj->current_iter = obj->main_table[obj->iter_num];
                 break;
         }
         case OBJECT_HASH_ITER_STATE_END:
                 obj->current_iter = NULL;
                 break;
         }
-        
+
         if (obj->iter_num == obj->table_size) {
                 obj->state = OBJECT_HASH_ITER_STATE_END;
                 return NULL;

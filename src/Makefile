@@ -9,7 +9,7 @@ VALGRIND_ARGS = --leak-check=full
 VPATH = ../libs/object_v2
 OBJECT = object_v2-object.o object_v2-string.o object_v2-node.o \
  object_v2-hash.o IOStream.o ConfigObject.o FileHash.o FileObject.o \
- QueueObject.o object_v2-simple_chain.o main.o
+ QueueObject.o object_v2-simple_chain.o args_parser.o main.o
 TARGET = a.out
 
 all: $(TARGET)

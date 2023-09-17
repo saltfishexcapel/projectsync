@@ -146,15 +146,16 @@ config_object_pull (ConfigObject* obj)
 {
         if (!obj || !obj->path)
                 return;
-        printf ("\n正在载入文件信息 %s ...\n",
-                obj->path->charset);
+        printf ("\n正在载入文件信息 '%s' ...\n", obj->path->charset);
         global_load_nums     = 0;
         global_original_path = object_string_get_string (obj->path);
         config_object_pull_dirents (OBJECT_HASH (obj), obj->path->charset);
 }
 
 QueueObject*
-config_object_compare_with (ConfigObject* obj, ConfigObject* cmp_obj)
+config_object_compare_with (ConfigObject* obj,
+                            ConfigObject* cmp_obj,
+                            bool          disable_delete)
 {
         QueueObject * queue = NULL, *queue_head = NULL;
         ObjectHashKV* kv;
@@ -222,6 +223,9 @@ reiter:
         queue_add_flag = false;
         goto reiter;
 
+        if (disable_delete)
+                return queue_head;
+
 iter_target_path:
         /*迭代操作对象目录，检查是否有需要删除的文件*/
         object_hash_iter_reset (OBJECT_HASH (cmp_obj));
@@ -239,10 +243,10 @@ reiter_target:
         /*没找到就代表这是需要删除的文件对象*/
         if (!dist_obj) {
                 /*在队列尾新建一个 QueueObject 节点*/
-                if (!queue) {
+                if (!queue && queue_add_flag) {
                         queue_head = queue = queue_object_new ();
                         object_node_set_as_manager (OBJECT_NODE (queue_head));
-                } else {
+                } else if (queue_add_flag) {
                         queue = queue_object_new ();
                         object_node_set_new_end (OBJECT_NODE (queue_head),
                                                  OBJECT_NODE (queue));
@@ -252,6 +256,8 @@ reiter_target:
                         queue,
                         object_string_get_string (cmp_obj->path));
                 queue_object_set_object (queue, fobj);
+
+                queue_add_flag = true;
         }
         goto reiter_target;
 }

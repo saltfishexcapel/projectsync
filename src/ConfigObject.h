@@ -20,6 +20,7 @@ config_object_set_path (ConfigObject* obj, const char* path, bool is_target);
 void config_object_pull (ConfigObject* obj);
 /*返回一个队列对象，在最后需要解引用这个对象*/
 QueueObject* config_object_compare_with (ConfigObject* obj,
-                                         ConfigObject* cmp_obj);
+                                         ConfigObject* cmp_obj,
+                                         bool disable_delete);
 
 #endif

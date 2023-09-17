@@ -10,7 +10,7 @@
  * Windows
  * GNU/Linux
  */
-#if defined(PROJECTSYNC_SYSTEM_WIN)
+#if defined PROJECTSYNC_SYSTEM_WIN
         #define DCL   "\\"
         #define _DCL_ '\\'
         #include <fileapi.h>
@@ -19,7 +19,7 @@
         #include <windows.h>
         #define io_stream_directory_is_exist(path) \
                 (_access (path, 00) == 0 ? true : false)
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         #define DCL   "/"
         #define _DCL_ '/'
         #include <dirent.h>
@@ -65,9 +65,9 @@ struct _IOStreamDirectory
  * GNU/Linux
  * Windows
  */
-#if defined(PROJECTSYNC_SYSTEM_WIN)
+#if defined PROJECTSYNC_SYSTEM_WIN
         windows_code;
-#elif defined(PROJECTSYNC_SYSTEM_LINUX)
+#elif defined PROJECTSYNC_SYSTEM_LINUX || defined PROJECTSYNC_SYSTEM_MINGW
         DIR* dir;
 #endif
 };
